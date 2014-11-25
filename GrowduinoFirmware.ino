@@ -26,12 +26,13 @@
 // #define USE_GSM 1
 
 #ifdef USE_GSM
-#include <GSM_Shield.h>
-GSM gsm;
+#include "SIM900.h"
+#include "sms.h"
+SMSGSM sms;
 #endif
 
 
-int gsm_init_done = 0;
+// int gsm_init_done = 0;
 
 Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 
@@ -186,11 +187,14 @@ void setup(void) {
     Serial.println(F("Loading alerts"));
     alerts_load(alerts);
 
-    #ifdef USE_GSM
+#ifdef USE_GSM
     lcd_print_immediate(F("Starting GSM..."));
-    //Serial3.begin(9600);
-    gsm.TurnOn(9600);
-    #endif
+    if (gsm.begin(9600)) {
+        lcd_print_immediate(F("GSM Ready"));
+    } else {
+        lcd_print_immediate(F("GSM idle"));
+    }
+#endif
 
     // start real time clock
     Serial.println(F("Initialising clock"));
@@ -334,20 +338,24 @@ void worker(){
     gsm_reg = gsm.CheckRegistration();
     switch (gsm_reg){
         case REG_NOT_REGISTERED:
-            lcd_publish("GSM not registered");
+            snprintf(lcd_msg, 17, "GSM not registered");
+            lcd_publish(lcd_msg);
             break;
         case REG_REGISTERED:
-            lcd_publish("GSM registered");
-            if (gsm_init_done == 0) {
-                Serial3.println("AT+CLTS=1\r");
-                Serial3.println("AT+CENG=3\r");
-            }
+            snprintf(lcd_msg, 17, "GSM registered");
+            lcd_publish(lcd_msg);
+            // if (gsm_init_done == 0) {
+            //    Serial3.println("AT+CLTS=1\r");
+            //     Serial3.println("AT+CENG=3\r");
+            // }
             break;
         case REG_NO_RESPONSE:
-            lcd_publish("GSM no response");
+            snprintf(lcd_msg, 17, "GSM no response");
+            lcd_publish(lcd_msg);
             break;
         case REG_COMM_LINE_BUSY:
-            lcd_publish("GSM busy");
+            snprintf(lcd_msg, 17, "GSM busy");
+            lcd_publish(lcd_msg);
             break;
     }
     #endif
