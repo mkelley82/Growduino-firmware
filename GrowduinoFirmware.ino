@@ -108,6 +108,7 @@ aJsonObject * status(){
     }
     aJson.addItemToObject(msg, "sensor_list", logger_list);
     aJson.addItemToObject(msg, "triggers", aJson.createItem(TRIGGERS));
+    aJson.addItemToObject(msg, "alerts", aJson.createItem(ALERTS));
     aJson.addItemToObject(msg, "triggers_log_size", aJson.createItem(LOGSIZE));
     sprintf(buffer, "%ld", millis() / 1000);
     aJson.addItemToObject(msg, "uptime", aJson.createItem(buffer));
@@ -141,10 +142,15 @@ void setup(void) {
     digitalWrite(10,HIGH);
     pinMode(53,OUTPUT);
     digitalWrite(53,HIGH);
-    sdcard_init();
+    if (sdcard_init()) {
+        lcd_print_immediate(F("SD init OK"));
+    } else {
+        lcd_print_immediate(F("SD init failure"));
+    }
+
     char index[] = "/index.htm";
     if (SD.exists(index)) {
-        lcd_print_immediate(F("SD init OK"));
+        lcd_print_immediate(F("INDEX.HTM found OK"));
     } else {
         lcd_print_immediate(F("INDEX.HTM not found"));
         int q = 0;
@@ -155,10 +161,11 @@ void setup(void) {
         }
     }
     digitalWrite(13, LOW);
-    Serial.println(F("Inititalising Ethernet"));
+    // Serial.println(F("Inititalising Ethernet"));
     lcd_print_immediate(F("Starting Eth..."));
 
     // load config from sdcard
+    pFreeRam();
     aJsonObject * cfile = file_read("", "config.jso");
     if (cfile != NULL) {
         config.load(cfile);
@@ -166,7 +173,9 @@ void setup(void) {
     } else {
         lcd_print_immediate(F("E:Default cfg"));
     }
+    pFreeRam();
     config.save();
+    pFreeRam();
     if (config.use_dhcp == 1) {
         we_have_net = Ethernet.begin(config.mac);
     }
@@ -175,6 +184,7 @@ void setup(void) {
         Ethernet.begin(config.mac, config.ip, config.gateway, config.gateway, config.netmask);
     }
     server.begin();
+    pFreeRam();
     Serial.print(F("server is at "));
     Serial.println(Ethernet.localIP());
 
@@ -184,10 +194,12 @@ void setup(void) {
     Serial.println(freeRam());
 
     // load alerts
+    pFreeRam();
     Serial.println(F("Loading alerts"));
-    alerts_load(alerts);
+    alerts_load();
 
 #ifdef USE_GSM
+    pFreeRam();
     lcd_print_immediate(F("Starting GSM..."));
     if (gsm.begin(9600)) {
         lcd_print_immediate(F("GSM Ready"));
@@ -197,7 +209,8 @@ void setup(void) {
 #endif
 
     // start real time clock
-    Serial.println(F("Initialising clock"));
+    pFreeRam();
+    //Serial.println(F("Initialising clock"));
     lcd_print_immediate(F("Starting clock"));
     daytime_init();
 
@@ -213,8 +226,11 @@ void setup(void) {
 
     //initialise outputs
     outputs.common_init();
-    Serial.println(F("invoking load"));
+    pFreeRam();
+    Serial.println(F("Loading output history"));
     outputs.load();
+    pFreeRam();
+    Serial.println(F("Relay setup"));
     for(i=0; i <8; i++) {
         pinMode(RELAY_START + i, OUTPUT);
         // outputs.set(i, 0);
@@ -226,6 +242,8 @@ void setup(void) {
     #endif
 
     // init temp/humidity logger
+    pFreeRam();
+    Serial.println(F("Reading DHT data"));
     myDHT22.readData();
     Serial.print(F("DHT22 Sensor - temp: "));
     Serial.print(myDHT22.getTemperatureCInt());
@@ -233,6 +251,9 @@ void setup(void) {
     Serial.println(myDHT22.getHumidityInt());
     Serial.print(F("Light sensor: "));
     Serial.println(analogRead(LIGHT_SENSOR_PIN));
+    pFreeRam();
+    lcd_flush();
+    lcd_print_immediate(F("Setup done"));
 }
 
 void worker(){
@@ -285,24 +306,23 @@ void worker(){
 #ifdef DEBUG_TRIGGERS
         Serial.print(F("Trigger "));
         Serial.println(i);
-        triggers[i].json(&Serial);
+        trigger_json(i, &sd_file);
         Serial.println("");
 #endif
 
-        triggers[i].tick();
+        trigger_tick(i);
     }
     // tick alerts
     for(int i=0; i < ALERTS; i++) {
 #ifdef DEBUG_ALERTS
         Serial.print(F("Alert "));
         Serial.println(i);
-        alerts[i].json(&Serial);
         Serial.print(F(" "));
         Serial.print(alerts[i].last_state);
         Serial.println("");
 #endif
 
-        alerts[i].tick();
+        alert_tick(i);
     }
 
     // move relays
@@ -594,15 +614,16 @@ void pageServe(EthernetClient client){
         } else if (trg_no > -1) {
             aJsonStream eth_stream(&client);
             aJsonObject * data = aJson.parse(&eth_stream);
-            trigger_load(triggers, loggers, data, trg_no);
+            trigger_load(trg_no, data, loggers);
             trigger_save(triggers, trg_no);
             aJson.deleteItem(data);
         } else if (alert_no > -1) {
-            aJsonStream eth_stream(&client);
-            aJsonObject * data = aJson.parse(&eth_stream);
-            alert_load(data, alert_no);
-            alert_save(alerts, alert_no);
-            aJson.deleteItem(data);
+            //aJsonStream eth_stream(&client);
+            //aJsonObject * data = aJson.parse(&eth_stream);
+            //alert_load_target(alert_no, data);
+            alert_passthru(alert_no, &client);
+            alerts_load();
+            //aJson.deleteItem(data);
         }
 #ifdef DEBUG_HTTP
     Serial.println(F("POST request dealt with"));

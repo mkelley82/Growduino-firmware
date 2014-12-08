@@ -37,10 +37,13 @@
 
 #define ALARM_STR_MAXSIZE 32
 
-// max. 32
-#define TRIGGERS 32
+// TRIGGERS - ALERTS must be 31 or lower, or random crashes occur. Really.
+#define TRIGGERS 42
+#define ALERTS 12
 
-#define ALERTS 7
+
+#define ALERT_MSG_LEN 64
+#define ALERT_TARGET_LEN 32
 
 #define OUTPUTS 8
 
@@ -55,10 +58,10 @@
 #define UPS_READ_PIN 8
 
 #ifdef DEBUG
-//#define DEBUG_OUTPUT 1
+#define DEBUG_OUTPUT 1
 #define DEBUG_SDCARD 1
-//#define DEBUG_RB_DATA 1
-//#define DEBUG_TRIGGERS 1
+#define DEBUG_RB_DATA 1
+#define DEBUG_TRIGGERS 1
 #define DEBUG_ALERTS 1
 #define DEBUG_HTTP 1
 #define DEBUG_SMTP 1

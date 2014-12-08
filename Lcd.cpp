@@ -55,6 +55,7 @@ void lcd_print_immediate(const __FlashStringHelper * msg) {
         inserted_lines += 1;
     }
     strlcpy_P((char * ) lcd_lines[inserted_lines - 1], (char *) msg, 17);
+    Serial.println(lcd_lines[inserted_lines - 1]);
     lastrun = -1;
     lcd_last_printed_line = 0;
     
@@ -73,7 +74,7 @@ void lcd_flush() {
 }
 
 void lcd_tick() {
-    long currrun = millis() / 5000;
+    long currrun = millis() / 2000;
     if (currrun != lastrun) {
 
         lastrun = currrun;

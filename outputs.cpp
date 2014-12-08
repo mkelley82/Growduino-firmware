@@ -39,11 +39,18 @@ int Output::hw_get(int slot){
 
 int Output::set(int slot, int val, int trigger){
     // update valute of %slot% 
-    if (slot == -1 || slot >= OUTPUTS) return 0;
+    if (slot == -1 || slot >= OUTPUTS) {
+        Serial.println(F("set: nop"));
+        return 0;
+    }
     if (val == 0) {
         state[slot] = bitclr(state[slot], trigger);
+        Serial.print(F("set: clr "));
+        Serial.print(slot);
     } else {
         state[slot] = bitset(state[slot], trigger);
+        Serial.print(F("set: set "));
+        Serial.print(slot);
     }
     return (state[slot] != 0);
 }
@@ -87,6 +94,7 @@ time_t Output::uptime(int slot){
 
 int Output::bitget(int value, int bit){
     // check if given bitfield %value% has bit %bit% set
+    if (bit > 31) return 0;
     int out;
     out = !!(value & ( 1 << bit));
     return out;
@@ -94,6 +102,7 @@ int Output::bitget(int value, int bit){
 
  long Output::bitset(int value, int bit){
     // set bit %bit% in %value% and return new value
+    if (bit > 31) return 0;
 #ifdef DEBUG_OUTPUT
     Serial.print(F("Setting "));
     Serial.print(value, DEC);
@@ -110,6 +119,7 @@ int Output::bitget(int value, int bit){
 
 long Output::bitclr(int value, int bit){
     // clear %bit% in %value% and return new value
+    if (bit > 31) return 0;
 #ifdef DEBUG_OUTPUT
     Serial.print(F("Clearing "));
     Serial.print(value, DEC);
@@ -271,30 +281,32 @@ void Output::load(){
 #ifdef DEBUG_OUTPUT
             Serial.println(F("json contains no related data"));
 #endif
-        }
+        } else {
 
-        data_item = buff->child;
-        int idx = 0;
-        time_t tstamp = 0;
-        int value = 0;
+            data_item = buff->child;
+            int idx = 0;
+            time_t tstamp = 0;
+            int value = 0;
 
-        while (data_item != NULL) {
-            Serial.println(F("Loading data item"));
-            Serial.print(F("Name: "));
-            Serial.println(data_item->name);
-            sscanf(data_item->name, "%lu", &tstamp);
-            Serial.print(F("iName: "));
-            Serial.println(tstamp);
-            value = data_item->valueint;
-            Serial.print(F("Value: "));
-            Serial.println(value);
-            Serial.println(F("----"));
-            log_times[idx] = tstamp;
-            log_states[idx] = value;
-            idx++;
-            data_item = data_item->next;
+            while (data_item != NULL) {
+                Serial.println(F("Loading data item"));
+                Serial.print(F("Name: "));
+                Serial.println(data_item->name);
+                sscanf(data_item->name, "%lu", &tstamp);
+                Serial.print(F("iName: "));
+                Serial.println(tstamp);
+                value = data_item->valueint;
+                Serial.print(F("Value: "));
+                Serial.println(value);
+                Serial.println(F("----"));
+                log_times[idx] = tstamp;
+                log_states[idx] = value;
+                idx++;
+                data_item = data_item->next;
+            }
+            log_index = idx;
         }
-        log_index = idx;
+        aJson.deleteItem(logfile);
     }
 }
 
