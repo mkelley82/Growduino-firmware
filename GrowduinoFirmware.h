@@ -49,15 +49,18 @@
 
 #define LOGGERS 6
 
-#define DEBUG 1
+#define GROWDUINO_DEBUG 1
 
 #define LCD_BUFFER_LINES 6
 
+#define MEGA 1
+
+#define USE_GSM 1
 #define GSM_ENABLE 6
 
 #define UPS_READ_PIN 8
 
-#ifdef DEBUG
+#ifdef GROWDUINO_DEBUG
 #define DEBUG_OUTPUT 1
 #define DEBUG_SDCARD 1
 #define DEBUG_RB_DATA 1

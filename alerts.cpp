@@ -1,4 +1,9 @@
 #include "GrowduinoFirmware.h"
+#ifdef USE_GSM
+#include "SIM900.h"
+#include "sms.h"
+extern SMSGSM sms;
+#endif
 #include <string.h>
 extern Alert alerts[];
 extern Output outputs;
@@ -77,13 +82,8 @@ int alert_send_message(int idx) {
     Serial.println(target);
     #endif
 
-    if (strchr(target, '@') != NULL) {
-    #ifdef DEBUG_ALERTS
-        Serial.print(F("Sending mail"));
-    #endif
-        //send mail
+        //prepare data
         int size;
-        char subject[32];
         char * body;
         char * line_end;
         Serial.print(F("Last state: "));
@@ -106,11 +106,25 @@ int alert_send_message(int idx) {
         line_end = strchrnul(body, '\n');
         if ((line_end - body) <  size) size = line_end - body;
 
+    if (strchr(target, '@') != NULL) {
+    #ifdef DEBUG_ALERTS
+        Serial.print(F("Sending mail"));
+    #endif
+        char subject[32];
         strlcpy(subject, body, size);  // copy first line of body to subject
         pFreeRam();
         send_mail(target, subject, body);
         pFreeRam();
         return 0;
+    } else {
+    #ifdef DEBUG_ALERTS
+        Serial.print(F("Sending mail"));
+    #endif
+        pFreeRam();
+        sms.SendSMS(target, body);
+        pFreeRam();
+        return 0;
+
     }
     return 1;
 }

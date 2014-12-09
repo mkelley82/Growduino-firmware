@@ -23,7 +23,6 @@
 #include <Adafruit_MCP23017.h>
 #include <Adafruit_RGBLCDShield.h>
 
-// #define USE_GSM 1
 
 #ifdef USE_GSM
 #include "SIM900.h"
