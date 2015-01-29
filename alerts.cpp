@@ -14,6 +14,12 @@ void alert_load_trigger(int idx, aJsonObject *msg){
     } else {
         alerts[idx].trigger = NONE;
     }
+    if (cnfobj->valueint > TRIGGERS) {
+        Serial.print(F("Alert trigger out of range: trg: "));
+        Serial.print(cnfobj->valueint);
+        Serial.print(F(", limit is "));
+        Serial.println(TRIGGERS);
+    }
     alerts[idx].last_state = NONE;
 }
 

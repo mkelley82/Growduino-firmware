@@ -69,7 +69,7 @@ int Output::breakme(int slot, int val, int trigger){
         Serial.println(F("breakme: set"));
         broken[slot] = bitset(broken[slot], trigger);
     }
-    return (state[slot] != 0);
+    return (broken[slot] != 0);
 }
 
 void Output::kill(int slot, int trigger){
@@ -100,7 +100,7 @@ int Output::bitget(int value, int bit){
     return out;
 }
 
- long Output::bitset(int value, int bit){
+long Output::bitset(int value, int bit){
     // set bit %bit% in %value% and return new value
     if (bit > 31) return 0;
 #ifdef DEBUG_OUTPUT
@@ -160,12 +160,14 @@ int Output::hw_update(int slot){
 #ifdef DEBUG_OUTPUT
         Serial.print(F("Output "));
         Serial.print(slot, DEC);
+        Serial.print(F("is at "));
+        Serial.print(hw_state[slot]);
 
 #endif
     int wanted;
     if (broken[slot] != 0) {
 #ifdef DEBUG_OUTPUT
-        Serial.println(F(" is broken"));
+        Serial.println(F("and is broken"));
 #endif
         wanted = 0;
     } else {
@@ -177,7 +179,8 @@ int Output::hw_update(int slot){
     }
     if (wanted != hw_state[slot]) {
 #ifdef DEBUG_OUTPUT
-        Serial.println(F("Changing output"));
+        Serial.print(F("Changing output to "));
+        Serial.println(wanted, DEC);
 #endif
         time_t t_now = utc_now();
         digitalWrite(RELAY_START + slot, wanted);
@@ -189,7 +192,6 @@ int Output::hw_update(int slot){
         Serial.println(F("Not changing output"));
 #endif
     }
-
     return wanted;
 }
 
