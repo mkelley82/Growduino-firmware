@@ -98,7 +98,7 @@ Sensor state
 Trigger configuration
 ---------------------
 /triggers/X.jso
- - X is 0 to TRIGGERS (GrowduinoFirmware.h, line 22)
+ - X is 0 to TRIGGERS - 1 (GrowduinoFirmware.h, line 22)
  - supports GET, POST
  - changes take effect immediately
  - t_since and t_until are in minutes since midnight, and define when the conditions are checked. For all-day trigger use t_since = -1. When t_since > t_until the trigger is checked over midnight.
