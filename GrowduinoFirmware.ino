@@ -428,6 +428,10 @@ const char * getContentType(char * filename) {
         return "Content-Type: image/png";
     if (strcmp(ext, "jpg") == 0)
         return "Content-Type: image/jpeg";
+    if (strcmp(ext, "ico") == 0)
+        return "Content-Type: image/vnd.microsoft.icon";
+    if (strcmp(ext, "gif") == 0)
+        return "Content-Type: image/gif";
     return "Content-Type: text/plain";
 }
 
