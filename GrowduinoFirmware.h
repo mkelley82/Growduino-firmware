@@ -39,6 +39,7 @@
 #endif
 #define PH_DATA 11
 
+#define MAX_SENSOR_DELAY 18000 // Maximum uS it takes for sensor to respond
 
 #define USE_EC_SENSOR 1
 #ifdef USE_EC_SENSOR
@@ -49,6 +50,8 @@
 #define EC_ENABLE 27
 #define EC_DATA 28
 #define EC_SAMPLE_TIMES 100
+
+// #define EC_POWER_SAVE 1
 
 
 #define USE_CO2_SENSOR 1
