@@ -8,7 +8,7 @@ unsigned int _maxEchoTime;
 unsigned long _max_time;
 
 
-void ec_enable(){
+void ec_enable() {
 #ifdef USE_EC_SENSOR
     pinMode(EC_DATA, INPUT);
     pinMode(EC_ENABLE, OUTPUT);
@@ -65,13 +65,13 @@ unsigned long getPulseTime() {
             freqhigh+= highDuration();
             freqlow+= lowDuration();
         }
-        pulseTime=((freqhigh + freqlow) / EC_SAMPLE_TIMES)/2;
+        pulseTime=((freqhigh + freqlow) / EC_SAMPLE_TIMES);
     } else pulseTime=MINVALUE;
     return pulseTime;
 }
 
 
-int ec_read(){
+int ec_read() {
     int ec = MINVALUE;
 #ifdef USE_EC_SENSOR
     long lowPulseTime = 0;
@@ -105,21 +105,25 @@ int ec_read(){
 
     pulseTime = getPulseTime();
 
-    if (pulseTime == MINVALUE)
-        return MINVALUE;
-
     ec = (int) 100 * (pulseTime * ec_a + ec_b);
 
-#endif
-
 #ifdef DEBUG_CALIB
-    if (ec != MINVALUE) {
-        Serial.print("EC pulse: ");
-        Serial.println(pulseTime);
-    }
+    Serial.print("echo bit: ");
+    Serial.print(_echoBit);
+    Serial.print(", echo input: ");
+    Serial.print(*_echoInput);
+    Serial.print(", EC pulse: ");
+    Serial.println(pulseTime);
 #endif
 #ifndef EC_POWER_SAVE
     digitalWrite(EC_ENABLE, LOW); // power down the sensor
 #endif
+
+    if (pulseTime == MINVALUE)
+        return MINVALUE;
     return ec;
+#else
+    return MINVALUE
+#endif
+
 }

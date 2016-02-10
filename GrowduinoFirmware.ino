@@ -70,6 +70,7 @@ Config config;
 Output outputs;
 
 aJsonStream serial_stream(&Serial);
+ec_enable();
 
 EthernetServer server(80);
 
